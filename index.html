@@ -17,9 +17,7 @@
       align-items: center;
     }
 
-    h1 {
-      margin-bottom: 10px;
-    }
+    h1 { margin-bottom: 10px; }
 
     /* ---------- LOGIN ---------- */
     .login-container {
@@ -49,9 +47,7 @@
       margin-top: 10px;
     }
 
-    button.secondary {
-      background-color: #3f6475;
-    }
+    button.secondary { background-color: #3f6475; }
 
     .error {
       color: red;
@@ -97,9 +93,7 @@
       cursor: pointer;
     }
 
-    .tab.active {
-      background-color: #3f6475;
-    }
+    .tab.active { background-color: #3f6475; }
 
     .content {
       flex: 1;
@@ -107,13 +101,8 @@
       background-color: #c8d9e6;
     }
 
-    .section {
-      display: none;
-    }
-
-    .section.active {
-      display: block;
-    }
+    .section { display: none; }
+    .section.active { display: block; }
 
     .chat-box {
       background: white;
@@ -124,227 +113,208 @@
       overflow-y: auto;
     }
 
-    .chat-message {
-      margin: 5px 0;
-    }
-
-    .app-msg {
-      color: #567c8d;
-    }
-
-    .user-msg {
-      text-align: right;
-      color: #333;
-    }
+    .chat-message { margin: 5px 0; }
+    .app-msg { color: #567c8d; }
+    .user-msg { text-align: right; color: #333; }
   </style>
 </head>
 
 <body>
 
-  <!-- LOGIN -->
-  <div class="login-container" id="login-box">
-    <h1>Under Control</h1>
-    <p>Log in or create an account</p>
+<!-- LOGIN -->
+<div class="login-container" id="login-box">
+  <h1>Under Control</h1>
+  <p>Log in or create an account</p>
 
-    <input id="username" type="text" placeholder="Username" />
-    <input id="password" type="password" placeholder="Password" />
+  <input id="username" type="text" placeholder="Username" />
+  <input id="password" type="password" placeholder="Password" />
 
-    <p id="login-error" class="error"></p>
+  <p id="login-error" class="error"></p>
 
-    <button onclick="handleLogin()">Log in</button>
-    <button class="secondary" onclick="handleSignup()">Create account</button>
+  <button onclick="handleLogin()">Log in</button>
+  <button class="secondary" onclick="handleSignup()">Create account</button>
+</div>
+
+<!-- APP -->
+<div class="app-container" id="app">
+  <div class="header">
+    <span>Under Control</span>
+    <button class="logout-btn" onclick="logout()">Disconnect</button>
   </div>
 
-  <!-- APP -->
-  <div class="app-container" id="app">
-    <div class="header">
-      <span>Under Control</span>
-      <button class="logout-btn" onclick="logout()">Disconnect</button>
-    </div>
-
-    <div class="tabs">
-      <div class="tab active" onclick="openSection(event,'chat')">Chat</div>
-      <div class="tab" onclick="openSection(event,'journal')">Journal</div>
-      <div class="tab" onclick="openSection(event,'message')">Message to self</div>
-      <div class="tab" onclick="openSection(event,'panic')">Panic help</div>
-    </div>
-
-    <div class="content">
-
-      <!-- CHAT -->
-      <div class="section active" id="chat">
-        <div class="chat-box" id="chatBox">
-          <div class="chat-message app-msg">App: What’s on your mind right now?</div>
-        </div>
-        <textarea id="chatInput" placeholder="Write here..."></textarea>
-        <button onclick="sendMessage()">Send</button>
-      </div>
-
-      <!-- JOURNAL -->
-      <div class="section" id="journal">
-        <h2>Journal</h2>
-        <textarea id="journalInput" placeholder="Write freely. No judgement."></textarea>
-        <button onclick="saveJournal()">Save</button>
-      </div>
-
-      <!-- MESSAGE -->
-      <div class="section" id="message">
-        <h2>Message to yourself</h2>
-        <textarea id="selfMessageInput" placeholder="Something kind for later."></textarea>
-        <button onclick="saveSelfMessage()">Save message</button>
-      </div>
-
-      <!-- PANIC -->
-      <div class="section" id="panic">
-        <h2>When it feels too much</h2>
-        <p>1. Name 5 things you see</p>
-        <p>2. Breathe slowly</p>
-        <p>3. Feel your feet on the ground</p>
-        <p>4. Tell yourself: “This will pass.”</p>
-        <button onclick="track('panic_steps_used')">I used this</button>
-      </div>
-
-    </div>
+  <div class="tabs">
+    <div class="tab active" onclick="openSection(event,'chat')">Chat</div>
+    <div class="tab" onclick="openSection(event,'journal')">Journal</div>
+    <div class="tab" onclick="openSection(event,'message')">Message to self</div>
+    <div class="tab" onclick="openSection(event,'panic')">Panic help</div>
   </div>
 
-  <script>
-    let currentUser = null;
-    let currentUserId = null;
-    let sessionStartMs = null;
+  <div class="content">
 
-    /* ---------- TRACKING ---------- */
-    function track(event, payload = {}) {
-      fetch("/api/track.php", {
+    <!-- CHAT -->
+    <div class="section active" id="chat">
+      <div class="chat-box" id="chatBox">
+        <div class="chat-message app-msg">App: What’s on your mind right now?</div>
+      </div>
+      <textarea id="chatInput" placeholder="Write here..."></textarea>
+      <button onclick="sendMessage()">Send</button>
+    </div>
+
+    <!-- JOURNAL -->
+    <div class="section" id="journal">
+      <h2>Journal</h2>
+      <textarea id="journalInput" placeholder="Write freely. No judgement."></textarea>
+      <button onclick="saveJournal()">Save</button>
+    </div>
+
+    <!-- MESSAGE -->
+    <div class="section" id="message">
+      <h2>Message to yourself</h2>
+      <textarea id="selfMessageInput" placeholder="Something kind for later."></textarea>
+      <button onclick="saveSelfMessage()">Save message</button>
+    </div>
+
+    <!-- PANIC -->
+    <div class="section" id="panic">
+      <h2>When it feels too much</h2>
+      <p>1. Name 5 things you see</p>
+      <p>2. Breathe slowly</p>
+      <p>3. Feel your feet on the ground</p>
+      <p>4. Tell yourself: “This will pass.”</p>
+      <button onclick="track('panic_steps_used')">I used this</button>
+    </div>
+
+  </div>
+</div>
+
+<script>
+  let currentUser = null;
+  let currentUserId = null;
+
+  /* ---------- TRACKING ---------- */
+  function track(event, payload = {}) {
+    fetch("/api/track", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ userId: currentUserId, event, payload }),
+      keepalive: true
+    }).catch(() => {});
+  }
+
+  /* ---------- AUTH ---------- */
+  function isValidPassword(p) {
+    return p.length >= 8 &&
+      /[a-z]/.test(p) &&
+      /[A-Z]/.test(p) &&
+      /[^A-Za-z0-9]/.test(p);
+  }
+
+  async function handleSignup() {
+    const u = username.value.trim();
+    const p = password.value;
+    const error = document.getElementById("login-error");
+
+    error.style.color = "red";
+    error.innerText = "";
+
+    if (!u || !isValidPassword(p)) {
+      error.innerText = "Password must be 8+ chars with upper, lower & symbol.";
+      return;
+    }
+
+    try {
+      const res = await fetch("/api/signup", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userId: currentUserId, event, payload }),
-        keepalive: true
-      }).catch(() => {});
+        body: JSON.stringify({ username: u, password: p })
+      });
+
+      if (!res.ok) throw new Error();
+
+      error.style.color = "green";
+      error.innerText = "Account created. You can log in.";
+      track("account_created");
+    } catch {
+      error.innerText = "Server error.";
     }
+  }
 
-    function startSession() {
-      if (sessionStartMs) return;
-      sessionStartMs = Date.now();
-      track("session_start");
+  async function handleLogin() {
+    const u = username.value.trim();
+    const p = password.value;
+    const error = document.getElementById("login-error");
+
+    error.innerText = "";
+
+    try {
+      const res = await fetch("/api/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username: u, password: p })
+      });
+
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error();
+
+      currentUser = u;
+      currentUserId = data.userId;
+      track("login_success");
+
+      document.getElementById("login-box").style.display = "none";
+      document.getElementById("app").style.display = "flex";
+    } catch {
+      error.innerText = "Invalid login.";
     }
+  }
 
-    function endSession(reason) {
-      if (!sessionStartMs) return;
-      const durationMs = Date.now() - sessionStartMs;
-      sessionStartMs = null;
-      track("session_end", { durationMs, reason });
-    }
+  function logout() {
+    track("logout");
 
-    /* ---------- AUTH ---------- */
-    function isValidPassword(p) {
-      return p.length >= 8 &&
-             /[a-z]/.test(p) &&
-             /[A-Z]/.test(p) &&
-             /[^A-Za-z0-9]/.test(p);
-    }
+    currentUser = null;
+    currentUserId = null;
 
-    async function handleSignup() {
-      const u = username.value.trim();
-      const p = password.value;
-      const error = login-error;
+    document.getElementById("app").style.display = "none";
+    document.getElementById("login-box").style.display = "block";
 
-      if (!u || !isValidPassword(p)) {
-        document.getElementById("login-error").innerText =
-          "Password must be 8+ chars with upper, lower & symbol.";
-        return;
-      }
+    username.value = "";
+    password.value = "";
+  }
 
-      try {
-        const res = await fetch("/api/signup.php", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ username: u, password: p })
-        });
-        if (res.ok) {
-          document.getElementById("login-error").style.color = "green";
-          document.getElementById("login-error").innerText = "Account created. You can log in.";
-          track("account_created");
-        }
-      } catch {
-        document.getElementById("login-error").innerText = "Server error.";
-      }
-    }
+  /* ---------- NAV ---------- */
+  function openSection(e, id) {
+    document.querySelectorAll(".section").forEach(s => s.classList.remove("active"));
+    document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
+    document.getElementById(id).classList.add("active");
+    e.target.classList.add("active");
+  }
 
-    async function handleLogin() {
-      const u = username.value.trim();
-      const p = password.value;
+  /* ---------- CHAT ---------- */
+  function sendMessage() {
+    const t = chatInput.value.trim();
+    if (!t) return;
+    addMessage("You", t, "user-msg");
+    chatInput.value = "";
+    addMessage("App", "Thank you for sharing.", "app-msg");
+    track("chat_message_sent");
+  }
 
-      try {
-        const res = await fetch("/api/login.php", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ username: u, password: p })
-        });
+  function addMessage(sender, text, cls) {
+    const d = document.createElement("div");
+    d.className = "chat-message " + cls;
+    d.innerText = `${sender}: ${text}`;
+    chatBox.appendChild(d);
+  }
 
-        const data = await res.json();
-        if (!res.ok) throw new Error();
+  function saveJournal() {
+    track("journal_saved");
+    journalInput.value = "";
+  }
 
-        currentUser = u;
-        currentUserId = data.userId;
-        startSession();
-        track("login_success");
-
-        login-box.style.display = "none";
-        app.style.display = "flex";
-      } catch {
-        document.getElementById("login-error").innerText = "Invalid login.";
-      }
-    }
-
-    function logout() {
-      endSession("user_logout");
-      track("logout");
-
-      currentUser = null;
-      currentUserId = null;
-
-      app.style.display = "none";
-      login-box.style.display = "block";
-
-      username.value = "";
-      password.value = "";
-    }
-
-    /* ---------- NAV ---------- */
-    function openSection(e, id) {
-      document.querySelectorAll(".section").forEach(s => s.classList.remove("active"));
-      document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
-      document.getElementById(id).classList.add("active");
-      e.target.classList.add("active");
-    }
-
-    /* ---------- CHAT ---------- */
-    function sendMessage() {
-      const t = chatInput.value.trim();
-      if (!t) return;
-      addMessage("You", t, "user-msg");
-      chatInput.value = "";
-      addMessage("App", "Thank you for sharing.", "app-msg");
-      track("chat_message_sent");
-    }
-
-    function addMessage(sender, text, cls) {
-      const d = document.createElement("div");
-      d.className = "chat-message " + cls;
-      d.innerText = `${sender}: ${text}`;
-      chatBox.appendChild(d);
-    }
-
-    function saveJournal() {
-      track("journal_saved");
-      journalInput.value = "";
-    }
-
-    function saveSelfMessage() {
-      track("self_message_saved");
-      selfMessageInput.value = "";
-    }
-  </script>
+  function saveSelfMessage() {
+    track("self_message_saved");
+    selfMessageInput.value = "";
+  }
+</script>
 
 </body>
 </html>
