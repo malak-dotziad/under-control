@@ -1,5 +1,11 @@
-import bcrypt from "bcryptjs";
 import { createClient } from "@supabase/supabase-js";
+import bcrypt from "bcryptjs";
+
+export const config = {
+  api: {
+    bodyParser: true,
+  },
+};
 
 const supabase = createClient(
   process.env.SUPABASE_URL,
@@ -7,21 +13,40 @@ const supabase = createClient(
 );
 
 export default async function handler(req, res) {
+  // CORS
+  res.setHeader("Access-Control-Allow-Origin", "*");
+  res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+
+  if (req.method === "OPTIONS") {
+    return res.status(200).end();
+  }
+
   if (req.method !== "POST") {
     return res.status(405).json({ error: "Method not allowed" });
   }
 
-  const { username, password } = req.body;
-  const hash = await bcrypt.hash(password, 10);
+  try {
+    const { username, password } = req.body || {};
 
-  const { error } = await supabase.from("users").insert({
-    username,
-    password_hash: hash
-  });
+    if (!username || !password) {
+      return res.status(400).json({ error: "Missing fields" });
+    }
 
-  if (error) {
-    return res.status(400).json({ error: "User already exists" });
+    const hash = await bcrypt.hash(password, 10);
+
+    const { error } = await supabase.from("users").insert({
+      username,
+      password_hash: hash,
+    });
+
+    if (error) {
+      return res.status(400).json({ error: "User already exists" });
+    }
+
+    return res.status(200).json({ success: true });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ error: "Server error" });
   }
-
-  res.status(200).json({ success: true });
 }
