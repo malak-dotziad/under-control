@@ -1,320 +1,1055 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Under Control</title>
 
   <style>
+    @import url('https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700&family=Nunito:wght@400;600;700&display=swap');
+
+    :root {
+      /* Palette: Peach, Blush, Cream, Muted Blue */
+      --bg-main: #fffcf8;
+      /* Very soft cream */
+      --bg-shell: rgba(255, 255, 255, 0.85);
+      /* Glassy white */
+      --bg-card: #ffffff;
+      --bg-accent: #ffe4e1;
+      /* Misty Rose */
+      --bg-accent-soft: #fff0f5;
+      /* Lavender Blush */
+
+      --primary: #ffb7b2;
+      /* Melon/Soft Pink */
+      --primary-strong: #ff9e99;
+      --secondary: #a2c2e0;
+      /* Pastel Blue */
+
+      --accent-blue: #c1e1f5;
+      /* Light Sky */
+      --accent-green: #dcedc8;
+      /* Tea Green */
+      --accent-yellow: #fff9c4;
+      /* Pale Yellow */
+
+      --text-main: #5d5d5d;
+      /* Warm Grey */
+      --text-soft: #8a8a8a;
+
+      --shadow-soft: 0 20px 60px rgba(180, 150, 140, 0.12);
+
+      --radius-lg: 32px;
+      --radius-md: 24px;
+      --radius-sm: 16px;
+    }
+
+    .panic-block {
+      background: var(--bg-card);
+      padding: 20px;
+      border-radius: var(--radius-md);
+      border: 1px solid rgba(255, 255, 255, 0.6);
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03);
+    }
+
+
     body {
       margin: 0;
-      font-family: Arial, sans-serif;
-      background-color: #c8d9e6;
-      color: #567c8d;
-      height: 100vh;
+      font-family: "Nunito", sans-serif;
+      /* Warm Gradient Background */
+      background: linear-gradient(135deg, #FFDEE9 0%, #B5FFFC 100%);
+      /* Fallback */
+      background: linear-gradient(120deg, #fdfbfb 0%, #ebedee 100%);
+      /* Placeholder cleanup */
+      background: radial-gradient(circle at top right, #ffecd2 0%, #fcb69f 100%);
+      /* Peach gradient */
+      background: linear-gradient(to top, #fff1eb 0%, #ace0f9 100%);
+      /* Soft sky */
+      background: linear-gradient(135deg, #FFF6E5 0%, #F7E8E8 60%, #E3F2FD 100%);
+      /* The calm mix */
+
+      color: var(--text-main);
+      min-height: 100vh;
       display: flex;
       justify-content: center;
       align-items: center;
+      padding: 24px;
+      box-sizing: border-box;
     }
 
-    h1 { margin-bottom: 10px; }
+    h1,
+    h2,
+    h3 {
+      font-family: "Baloo 2", cursive;
+      margin: 0 0 12px;
+      color: #6d5e5e;
+      font-weight: 700;
+    }
 
     /* ---------- LOGIN ---------- */
     .login-container {
-      background: white;
-      padding: 30px;
-      width: 320px;
-      border-radius: 10px;
+      background: rgba(255, 255, 255, 0.9);
+      backdrop-filter: blur(10px);
+      padding: 32px;
+      width: min(380px, 92vw);
+      border-radius: var(--radius-lg);
       text-align: center;
+      box-shadow: var(--shadow-soft);
+      border: 1px solid rgba(255, 255, 255, 0.5);
+      position: relative;
     }
 
-    input, textarea {
+    .login-illustration {
+      width: 120px;
+      margin: 0 auto 14px;
+    }
+
+    input {
       width: 100%;
-      padding: 10px;
+      padding: 14px 16px;
       margin: 8px 0;
-      border: 1px solid #567c8d;
-      border-radius: 5px;
+      border: 2px solid transparent;
+      border-radius: var(--radius-sm);
+      background: #f9f9f9;
+      font-size: 15px;
+      box-sizing: border-box;
+      transition: all 0.2s;
+      color: #555;
+    }
+
+    input::placeholder {
+      color: #aaa;
+    }
+
+    input:focus {
+      outline: none;
+      background: #fff;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 4px rgba(255, 183, 178, 0.2);
     }
 
     button {
       width: 100%;
-      padding: 10px;
-      background-color: #567c8d;
+      padding: 14px 16px;
+      background-color: var(--primary);
       color: white;
       border: none;
-      border-radius: 5px;
+      border-radius: 999px;
       cursor: pointer;
-      margin-top: 10px;
+      margin-top: 12px;
+      font-weight: 700;
+      font-size: 16px;
+      box-shadow: 0 8px 20px rgba(255, 183, 178, 0.4);
+      transition: transform 0.1s;
     }
 
-    button.secondary { background-color: #3f6475; }
+    button:hover {
+      transform: translateY(-1px);
+    }
+
+    button:active {
+      transform: translateY(1px);
+    }
+
+    button.secondary {
+      background-color: rgba(255, 255, 255, 0.8);
+      color: var(--text-soft);
+      box-shadow: none;
+      border: 1px solid transparent;
+    }
+
+    button.secondary:hover {
+      background: #fff;
+      color: var(--primary);
+    }
+
+    button.disconnect-btn {
+      width: auto;
+      margin: 0;
+      padding: 8px 16px;
+      font-size: 13px;
+      background: #fff;
+      color: var(--text-soft);
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+    }
 
     .error {
-      color: red;
+      color: #ff8b8b;
       font-size: 14px;
     }
 
     /* ---------- APP ---------- */
     .app-container {
       display: none;
-      width: 100%;
-      height: 100%;
+      width: min(1000px, 96vw);
+      min-height: 85vh;
       flex-direction: column;
     }
 
+    .app-shell {
+      background: var(--bg-shell);
+      backdrop-filter: blur(12px);
+      border-radius: 40px;
+      /* More rounded */
+      padding: 32px;
+      box-shadow: var(--shadow-soft);
+      border: 1px solid rgba(255, 255, 255, 0.6);
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+    }
+
     .header {
-      background: white;
-      padding: 15px 20px;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      font-weight: bold;
-      font-size: 22px;
+      gap: 12px;
     }
 
-    .logout-btn {
-      width: auto;
-      padding: 6px 14px;
-      font-size: 14px;
-      background: #3f6475;
-      border-radius: 6px;
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-family: "Baloo 2", cursive;
+      font-size: 26px;
+      color: #6b5b5b;
+      font-weight: 700;
+      letter-spacing: -0.5px;
     }
 
+    .brand-dot {
+      width: 14px;
+      height: 14px;
+      background: var(--primary);
+      border-radius: 50%;
+      box-shadow: 0 0 0 6px rgba(255, 183, 178, 0.25);
+    }
+
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .mood-pill {
+      background: #f0f4f8;
+      color: #7b8ea0;
+      padding: 8px 16px;
+      border-radius: 999px;
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .avatar {
+      width: 42px;
+      height: 42px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #ffc3a0 0%, #ffafbd 100%);
+      display: grid;
+      place-items: center;
+      color: #fff;
+      font-weight: 700;
+      box-shadow: 0 4px 10px rgba(255, 175, 189, 0.4);
+    }
+
+    .hero {
+      background: linear-gradient(to right, #fff5f5, #fffcf5);
+      border-radius: var(--radius-lg);
+      padding: 0 30px;
+      display: grid;
+      grid-template-columns: 1.2fr 1fr;
+      align-items: center;
+      gap: 18px;
+      position: relative;
+      overflow: hidden;
+      min-height: 200px;
+      border: 1px solid rgba(255, 255, 255, 0.8);
+    }
+
+    /* Decorative blobs */
+    .hero::before {
+      content: "";
+      position: absolute;
+      top: -50px;
+      left: -50px;
+      width: 150px;
+      height: 150px;
+      background: #eefcfc;
+      border-radius: 50%;
+      z-index: 0;
+    }
+
+    .hero-title {
+      font-family: "Baloo 2", cursive;
+      font-size: 32px;
+      margin-bottom: 8px;
+      color: #554444;
+      position: relative;
+      z-index: 1;
+    }
+
+    .hero p {
+      margin: 0;
+      color: #887777;
+      font-size: 16px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .hero-art {
+      width: 100%;
+      max-width: 240px;
+      justify-self: end;
+      position: relative;
+      z-index: 1;
+    }
+
+    /* Tabs as Pills */
     .tabs {
       display: flex;
-      background-color: #567c8d;
+      flex-wrap: wrap;
+      gap: 12px;
+      background-color: transparent;
+      padding: 4px 0;
     }
 
     .tab {
-      flex: 1;
-      padding: 12px;
+      padding: 10px 20px;
       text-align: center;
-      color: white;
+      color: var(--text-soft);
       cursor: pointer;
+      background: rgba(255, 255, 255, 0.6);
+      border-radius: 999px;
+      font-size: 15px;
+      font-weight: 700;
+      transition: all 0.2s;
+      border: 1px solid transparent;
     }
 
-    .tab.active { background-color: #3f6475; }
+    .tab:hover {
+      background: #fff;
+      color: var(--primary-strong);
+      transform: translateY(-1px);
+    }
+
+    .tab.active {
+      background-color: var(--primary);
+      color: white;
+      box-shadow: 0 8px 20px rgba(255, 183, 178, 0.3);
+    }
 
     .content {
       flex: 1;
-      padding: 20px;
-      background-color: #c8d9e6;
+      background-color: transparent;
     }
 
-    .section { display: none; }
-    .section.active { display: block; }
+    /* Card styling */
+    .section {
+      display: none;
+      background: #fff;
+      padding: 26px;
+      border-radius: var(--radius-lg);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.02);
+      border: 1px solid rgba(0, 0, 0, 0.03);
+    }
+
+    .section.active {
+      display: block;
+      animation: fadeIn 0.3s ease-out;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    textarea {
+      width: 100%;
+      height: 120px;
+      padding: 16px;
+      border-radius: var(--radius-sm);
+      border: 2px solid #f0f0f0;
+      background: #fafafa;
+      box-sizing: border-box;
+      font-family: inherit;
+      resize: none;
+      outline: none;
+      transition: border 0.2s;
+    }
+
+    textarea:focus {
+      border-color: var(--primary);
+      background: #fff;
+    }
 
     .chat-box {
-      background: white;
-      padding: 10px;
-      border-radius: 5px;
-      margin-bottom: 10px;
-      max-height: 200px;
+      background: #fdfdfd;
+      padding: 16px;
+      border-radius: var(--radius-md);
+      margin-bottom: 16px;
+      max-height: 240px;
       overflow-y: auto;
+      border: 1px solid #f0f0f0;
     }
 
-    .chat-message { margin: 5px 0; }
-    .app-msg { color: #567c8d; }
-    .user-msg { text-align: right; color: #333; }
+    .chat-message {
+      margin: 8px 0;
+      padding: 10px 14px;
+      border-radius: 12px;
+      width: fit-content;
+      max-width: 80%;
+      line-height: 1.4;
+    }
+
+    .app-msg {
+      background: #f0f7ff;
+      color: #5a7d9b;
+      border-bottom-left-radius: 2px;
+    }
+
+    .user-msg {
+      background: var(--bg-accent-soft);
+      color: #7a5c5c;
+      margin-left: auto;
+      text-align: left;
+      border-bottom-right-radius: 2px;
+    }
+
+    .breathing-wrap {
+      margin-top: 18px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 260px;
+      background: radial-gradient(circle, #fff5f5 0%, #fff 70%);
+      border-radius: 50%;
+    }
+
+    .heart {
+      position: relative;
+      width: 100px;
+      height: 100px;
+      background: var(--primary);
+      transform: rotate(-45deg);
+      border-radius: 16px;
+      box-shadow: 0 10px 25px rgba(255, 183, 178, 0.5);
+    }
+
+    .heart::before,
+    .heart::after {
+      content: "";
+      position: absolute;
+      width: 100px;
+      height: 100px;
+      background: var(--primary);
+      border-radius: 50%;
+    }
+
+    .heart::before {
+      top: -50px;
+      left: 0;
+    }
+
+    .heart::after {
+      left: 50px;
+      top: 0;
+    }
+
+    @keyframes heartbeatBreath {
+      0% {
+        transform: rotate(-45deg) scale(1);
+        opacity: 0.9;
+      }
+
+      50% {
+        transform: rotate(-45deg) scale(1.4);
+        opacity: 1;
+      }
+
+      100% {
+        transform: rotate(-45deg) scale(1);
+        opacity: 0.9;
+      }
+    }
+
+    .heart.breathing {
+      animation: heartbeatBreath 6s ease-in-out infinite;
+    }
+
+    .breathing-controls {
+      display: flex;
+      gap: 10px;
+      margin-top: 20px;
+    }
+
+    .breathing-controls button {
+      flex: 1;
+    }
+
+    .section-title {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .badge {
+      background: var(--accent-blue);
+      color: #3b5f7a;
+      padding: 6px 12px;
+      border-radius: 999px;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      font-weight: 800;
+    }
+
+    @media (max-width: 900px) {
+      .hero {
+        grid-template-columns: 1fr;
+        text-align: center;
+        padding-top: 20px;
+        padding-bottom: 20px;
+      }
+
+      .hero-art {
+        justify-self: center;
+        order: -1;
+      }
+
+      .hero-title {
+        font-size: 26px;
+      }
+    }
+
+    @media (max-width: 600px) {
+      body {
+        padding: 12px;
+      }
+
+      .app-shell {
+        padding: 20px;
+      }
+
+      .header {
+        flex-direction: row;
+        /* Keep row even on mobile if possible, or stack safely */
+        flex-wrap: wrap;
+      }
+
+      .tabs {
+        gap: 8px;
+        justify-content: center;
+      }
+
+      .tab {
+        font-size: 13px;
+        padding: 8px 14px;
+      }
+    }
   </style>
 </head>
 
 <body>
 
-<!-- LOGIN -->
-<div class="login-container" id="login-box">
-  <h1>Under Control</h1>
-  <p>Log in or create an account</p>
+  <!-- LOGIN -->
+  <div class="login-container" id="login-box">
+    <div class="login-illustration">
+      <!-- Soft Abstract Flower/Sun -->
+      <svg viewBox="0 0 120 120" width="100" height="100" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="60" cy="60" r="40" fill="#ffe4e1" />
+        <circle cx="60" cy="60" r="20" fill="#ffb7b2" />
+        <path d="M60 10 A50 50 0 0 1 110 60" fill="none" stroke="#fabfb7" stroke-width="4" stroke-linecap="round" />
+        <path d="M10 60 A50 50 0 0 1 60 110" fill="none" stroke="#fabfb7" stroke-width="4" stroke-linecap="round" />
+      </svg>
+    </div>
+    <h1>Under Control</h1>
+    <p style="color: var(--text-soft); margin-top: -6px; font-size: 15px;">A safe space for your mind.</p>
 
-  <input id="username" type="text" placeholder="Username" />
-  <input id="password" type="password" placeholder="Password" />
+    <input id="email" type="email" placeholder="Email address" />
+    <input id="password" type="password" placeholder="Password" />
 
-  <p id="login-error" class="error"></p>
+    <p id="login-error" class="error"></p>
 
-  <button onclick="handleLogin()">Log in</button>
-  <button class="secondary" onclick="handleSignup()">Create account</button>
-</div>
+    <button onclick="handleLogin()">Log in</button>
+    <button class="secondary" onclick="handleSignup()">Create account</button>
+    <button class="secondary"
+      style="background:transparent; border:none; box-shadow:none; font-weight:600; font-size:13px; color:#aaa;"
+      onclick="handleForgotPassword()">Forgot password?</button>
+    <p id="reset-info" style="font-size:13px; margin-top:10px;"></p>
 
-<!-- APP -->
-<div class="app-container" id="app">
-  <div class="header">
-    <span>Under Control</span>
-    <button class="logout-btn" onclick="logout()">Disconnect</button>
   </div>
 
-  <div class="tabs">
-    <div class="tab active" onclick="openSection(event,'chat')">Chat</div>
-    <div class="tab" onclick="openSection(event,'journal')">Journal</div>
-    <div class="tab" onclick="openSection(event,'message')">Message to self</div>
-    <div class="tab" onclick="openSection(event,'panic')">Panic help</div>
-  </div>
-
-  <div class="content">
-
-    <!-- CHAT -->
-    <div class="section active" id="chat">
-      <div class="chat-box" id="chatBox">
-        <div class="chat-message app-msg">App: What’s on your mind right now?</div>
+  <!-- APP -->
+  <div class="app-container" id="app">
+    <div class="app-shell">
+      <div class="header">
+        <div class="brand">
+          <span class="brand-dot"></span>
+          Under Control
+        </div>
+        <div class="header-right">
+          <div class="mood-pill" id="moodDisplay">Take a breath</div>
+          <button class="disconnect-btn" onclick="handleDisconnect()">Disconnect</button>
+          <div class="avatar">UC</div>
+        </div>
       </div>
-      <textarea id="chatInput" placeholder="Write here..."></textarea>
-      <button onclick="sendMessage()">Send</button>
+
+      <div class="hero">
+        <div>
+          <div class="hero-title">Stay soft with yourself</div>
+          <p>You are safe here. Take a moment to untangle your thoughts.</p>
+        </div>
+        <div class="hero-art">
+          <!-- Meditating Person SVG (Simplified) -->
+          <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+            <!-- Background shapes -->
+            <circle cx="100" cy="120" r="70" fill="#fff5ee" />
+
+            <!-- Person Body -->
+            <path d="M60,160 Q60,120 100,120 Q140,120 140,160 Z" fill="#a2c2e0" /> <!-- Legs/Base -->
+            <path d="M75,120 Q75,80 100,80 Q125,80 125,120 Z" fill="#90b1d0" /> <!-- Torso -->
+
+            <!-- Head -->
+            <circle cx="100" cy="70" r="18" fill="#ffe4c4" />
+            <!-- Hair -->
+            <path d="M82,70 Q80,50 100,50 Q120,50 118,70" fill="#4a4a4a" />
+
+            <!-- Mug/Tea -->
+            <circle cx="120" cy="110" r="8" fill="#ffb7b2" />
+
+            <!-- Steam -->
+            <path d="M120,100 Q125,90 120,85" stroke="white" stroke-width="2" stroke-linecap="round" fill="none"
+              opacity="0.6" />
+          </svg>
+        </div>
+      </div>
+
+      <div class="tabs">
+        <div class="tab active" onclick="openSection(event,'chat')">Chat</div>
+        <div class="tab" onclick="openSection(event,'journal')">Journal</div>
+        <div class="tab" onclick="openSection(event,'message')">Message to self</div>
+        <div class="tab" onclick="openSection(event,'panic')">Panic help</div>
+        <div class="tab" onclick="openSection(event,'breathing')">Breathing</div>
+      </div>
+
+      <div class="content">
+
+        <!-- CHAT -->
+        <div class="section active" id="chat">
+          <div class="section-title">
+            <h2>Chat</h2>
+            <span class="badge">Calm check-in</span>
+          </div>
+          <div class="chat-box" id="chatBox">
+            <div class="chat-message app-msg">App: What’s on your mind right now?</div>
+          </div>
+          <textarea id="chatInput" placeholder="Write here..."></textarea>
+          <button onclick="sendMessage()">Send</button>
+        </div>
+
+        <!-- JOURNAL -->
+        <div class="section" id="journal">
+          <div class="section-title">
+            <h2>Journal</h2>
+            <span class="badge" style="background: var(--accent-green); color:#295444;">Private space</span>
+          </div>
+          <textarea id="journalInput" placeholder="Write freely. No judgement."></textarea>
+          <button onclick="saveJournal()">Save</button>
+        </div>
+
+        <!-- MESSAGE TO SELF -->
+        <div class="section" id="message">
+          <div class="section-title">
+            <h2>Message to yourself</h2>
+            <span class="badge">Gentle reminder</span>
+          </div>
+          <textarea id="selfMessageInput" placeholder="Something kind for later."></textarea>
+          <button onclick="saveSelfMessage()">Save message</button>
+        </div>
+
+        <!-- PANIC -->
+        <div class="section" id="panic">
+          <div class="section-title">
+            <h2>Panic help</h2>
+            <span class="badge">Grounding</span>
+          </div>
+
+          <!-- 1) Methode guidée -->
+          <div class="panic-block">
+            <h3>When it feels too much</h3>
+            <p>1. Name 5 things you see</p>
+            <p>2. Breathe slowly</p>
+            <p>3. Feel your feet on the ground</p>
+            <p>4. Tell yourself: “This will pass.”</p>
+            <button onclick="track('panic_steps_used')">I used this</button>
+          </div>
+
+          <!-- 2) Methode personnelle -->
+          <div class="panic-block" style="margin-top:16px;">
+            <h3>My personal panic calm method</h3>
+            <p style="margin-top:6px;">Write what helps you calm down (a sentence, steps, reminders…)</p>
+
+            <textarea id="panicPersonalInput"
+              placeholder="Example: Breathe 4-4-6, drink water, call my friend..."></textarea>
+
+            <button onclick="savePanicPersonal()">Save my method</button>
+
+            <div id="panicPersonalSaved" style="margin-top:10px;"></div>
+          </div>
+        </div>
+
+        <!-- BREATHING -->
+        <div class="section" id="breathing">
+          <div class="section-title">
+            <h2>Breathing</h2>
+            <span class="badge" style="background: #ffd2c3; color:#6b3d2d;">Heartbeat</span>
+          </div>
+          <p style="margin-top:-6px; color: var(--text-soft);">Follow the heartbeat: inhale when it grows, exhale when
+            it shrinks.</p>
+
+          <div class="breathing-wrap">
+            <div class="heart" id="heart"></div>
+          </div>
+
+          <div class="breathing-controls">
+            <button onclick="startBreathing()">Start</button>
+            <button class="secondary" onclick="stopBreathing()">Stop</button>
+          </div>
+
+          <p id="breathingHint" style="margin-top:10px; font-weight:bold;"></p>
+        </div>
+      </div>
     </div>
 
-    <!-- JOURNAL -->
-    <div class="section" id="journal">
-      <h2>Journal</h2>
-      <textarea id="journalInput" placeholder="Write freely. No judgement."></textarea>
-      <button onclick="saveJournal()">Save</button>
-    </div>
+  <script>
+    const email = document.getElementById("email");
+    const password = document.getElementById("password");
+    const chatInput = document.getElementById("chatInput");
+    const chatBox = document.getElementById("chatBox");
+    const journalInput = document.getElementById("journalInput");
+    const selfMessageInput = document.getElementById("selfMessageInput");
 
-    <!-- MESSAGE -->
-    <div class="section" id="message">
-      <h2>Message to yourself</h2>
-      <textarea id="selfMessageInput" placeholder="Something kind for later."></textarea>
-      <button onclick="saveSelfMessage()">Save message</button>
-    </div>
+    let currentUser = null;
 
-    <!-- PANIC -->
-    <div class="section" id="panic">
-      <h2>When it feels too much</h2>
-      <p>1. Name 5 things you see</p>
-      <p>2. Breathe slowly</p>
-      <p>3. Feel your feet on the ground</p>
-      <p>4. Tell yourself: “This will pass.”</p>
-      <button onclick="track('panic_steps_used')">I used this</button>
-    </div>
+      /* ---------- TRACKING ---------- */
+      function track(event, payload = {}) {
+        const events = JSON.parse(localStorage.getItem("events")) || [];
+        events.push({
+          userId: currentUser || "anonymous",
+          event,
+          payload,
+          timestamp: new Date().toISOString()
+        });
+        localStorage.setItem("events", JSON.stringify(events));
+      }
 
-  </div>
-</div>
+      function savePanicPersonal() {
+        if (!currentUser) {
+          alert("Please log in first.");
+          return;
+        }
 
-<script>
-  let currentUser = null;
-  let currentUserId = null;
+        const txt = document.getElementById("panicPersonalInput").value.trim();
+        if (!txt) return;
 
-  /* ---------- TRACKING ---------- */
-  function track(event, payload = {}) {
-    fetch("/api/track", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ userId: currentUserId, event, payload }),
-      keepalive: true
-    }).catch(() => {});
-  }
+        const key = `panic_personal_${currentUser}`;
+        localStorage.setItem(key, txt);
 
-  /* ---------- AUTH ---------- */
-  function isValidPassword(p) {
-    return p.length >= 8 &&
-      /[a-z]/.test(p) &&
-      /[A-Z]/.test(p) &&
-      /[^A-Za-z0-9]/.test(p);
-  }
+        track("panic_personal_saved", { text: txt });
 
-  async function handleSignup() {
-    const u = username.value.trim();
-    const p = password.value;
-    const error = document.getElementById("login-error");
+        document.getElementById("panicPersonalInput").value = "";
+        renderPanicPersonal();
+      }
 
-    error.style.color = "red";
-    error.innerText = "";
+      function renderPanicPersonal() {
+        const box = document.getElementById("panicPersonalSaved");
+        if (!currentUser) {
+          box.innerHTML = "";
+          return;
+        }
 
-    if (!u || !isValidPassword(p)) {
-      error.innerText = "Password must be 8+ chars with upper, lower & symbol.";
-      return;
-    }
+        const key = `panic_personal_${currentUser}`;
+        const saved = localStorage.getItem(key);
 
-    try {
-      const res = await fetch("/api/signup", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username: u, password: p })
-      });
+        if (!saved) {
+          box.innerHTML = `<p style="color:#2F4A5C;">No personal method saved yet.</p>`;
+          return;
+        }
 
-      if (!res.ok) throw new Error();
+        box.innerHTML = `
+        <p style="color:#2F4A5C; font-weight:bold; margin-bottom:6px;">Your saved method:</p>
+        <div style="background:white; padding:10px; border-radius:10px; border:1px solid #ddd;">
+          ${saved.replace(/\n/g, "<br>")}
+        </div>
+        <button class="secondary" onclick="clearPanicPersonal()" style="margin-top:10px;">Delete</button>
+      `;
+      }
 
-      error.style.color = "green";
-      error.innerText = "Account created. You can log in.";
-      track("account_created");
-    } catch {
-      error.innerText = "Server error.";
-    }
-  }
+      function clearPanicPersonal() {
+        const key = `panic_personal_${currentUser}`;
+        localStorage.removeItem(key);
+        track("panic_personal_deleted");
+        renderPanicPersonal();
+      }
 
-  async function handleLogin() {
-    const u = username.value.trim();
-    const p = password.value;
-    const error = document.getElementById("login-error");
 
-    error.innerText = "";
+      /* ---------- AUTH ---------- */
+      function isValidPassword(p) {
+        return p.length >= 8 &&
+          /[a-z]/.test(p) &&
+          /[A-Z]/.test(p) &&
+          /[^A-Za-z0-9]/.test(p);
+      }
 
-    try {
-      const res = await fetch("/api/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username: u, password: p })
-      });
+      function isValidEmail(e) {
+        return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e);
+      }
 
-      const data = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error();
+      function handleSignup() {
+        const u = email.value.trim().toLowerCase();
+        const p = password.value;
+        const error = document.getElementById("login-error");
 
-      currentUser = u;
-      currentUserId = data.userId;
-      track("login_success");
+        if (!isValidEmail(u)) {
+          error.innerText = "Please enter a valid email address.";
+          return;
+        }
 
-      document.getElementById("login-box").style.display = "none";
-      document.getElementById("app").style.display = "flex";
-    } catch {
-      error.innerText = "Invalid login.";
-    }
-  }
+        if (!isValidPassword(p)) {
+          error.innerText = "Password must be 8+ chars, with upper, lower & symbol.";
+          return;
+        }
 
-  function logout() {
-    track("logout");
+        const users = JSON.parse(localStorage.getItem("users")) || {};
+        if (users[u]) {
+          error.innerText = "User already exists.";
+          return;
+        }
 
-    currentUser = null;
-    currentUserId = null;
+        // important: garder aussi resetToken/resetExpiry pour le reset
+        users[u] = { password: p, resetToken: null, resetExpiry: null };
 
-    document.getElementById("app").style.display = "none";
-    document.getElementById("login-box").style.display = "block";
+        localStorage.setItem("users", JSON.stringify(users));
+        track("account_created", { email: u });
 
-    username.value = "";
-    password.value = "";
-  }
+        error.style.color = "green";
+        error.innerText = "Account created. You can log in.";
+      }
 
-  /* ---------- NAV ---------- */
-  function openSection(e, id) {
-    document.querySelectorAll(".section").forEach(s => s.classList.remove("active"));
-    document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
-    document.getElementById(id).classList.add("active");
-    e.target.classList.add("active");
-  }
 
-  /* ---------- CHAT ---------- */
-  function sendMessage() {
-    const t = chatInput.value.trim();
-    if (!t) return;
-    addMessage("You", t, "user-msg");
-    chatInput.value = "";
-    addMessage("App", "Thank you for sharing.", "app-msg");
-    track("chat_message_sent");
-  }
+      function handleLogin() {
+        const u = email.value.trim().toLowerCase();
+        const p = password.value;
+        const users = JSON.parse(localStorage.getItem("users")) || {};
+        const error = document.getElementById("login-error");
 
-  function addMessage(sender, text, cls) {
-    const d = document.createElement("div");
-    d.className = "chat-message " + cls;
-    d.innerText = `${sender}: ${text}`;
-    chatBox.appendChild(d);
-  }
+        if (!users[u] || users[u].password !== p) {
+          error.innerText = "Invalid login.";
+          track("login_failed", { email: u });
+          return;
+        }
 
-  function saveJournal() {
-    track("journal_saved");
-    journalInput.value = "";
-  }
+        currentUser = u;
+        track("login_success", { email: u });
 
-  function saveSelfMessage() {
-    track("self_message_saved");
-    selfMessageInput.value = "";
-  }
-</script>
+        document.getElementById("login-box").style.display = "none";
+        document.getElementById("app").style.display = "flex";
+        renderPanicPersonal();
+      }
+
+      /* ---------- NAV ---------- */
+      function handleDisconnect() {
+        if (!confirm("Are you sure you want to disconnect?")) return;
+
+        currentUser = null;
+        track("user_disconnected");
+
+        // Stop any active breathing session
+        stopBreathing();
+
+        // Return to login
+        document.getElementById("app").style.display = "none";
+        document.getElementById("login-box").style.display = "block";
+
+        // Clear inputs
+        document.getElementById("email").value = "";
+        document.getElementById("password").value = "";
+      }
+
+      function openSection(e, id) {
+        document.querySelectorAll(".section").forEach(s => s.classList.remove("active"));
+        document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
+        document.getElementById(id).classList.add("active");
+        e.target.classList.add("active");
+      }
+
+      /* ---------- CHAT ---------- */
+      function sendMessage() {
+        const input = chatInput.value.trim();
+        if (!input) return;
+
+        addMessage("You", input, "user-msg");
+        chatInput.value = "";
+        track("chat_message_sent", { text: input });
+
+        const state = detectState(input);
+        track("state_detected", { state });
+        respond(state);
+      }
+
+      function addMessage(sender, text, cls) {
+        const div = document.createElement("div");
+        div.className = `chat-message ${cls}`;
+        div.innerText = `${sender}: ${text}`;
+        chatBox.appendChild(div);
+      }
+
+      function detectState(t) {
+        t = t.toLowerCase();
+        if (t.includes("tired") || t.includes("fatigu")) return "tired";
+        if (t.includes("stress") || t.includes("anx")) return "anxious";
+        if (t.includes("sad") || t.includes("triste")) return "sad";
+        if (t.includes("panic") || t.includes("peur")) return "panic";
+        return "neutral";
+      }
+
+      function respond(state) {
+        const responses = {
+          tired: "It sounds like you’re exhausted. Rest matters.",
+          anxious: "Let’s slow things down. One step at a time.",
+          sad: "You don’t need to be strong right now.",
+          panic: "Breathe slowly. You’re safe.",
+          neutral: "Thank you for sharing."
+        };
+        addMessage("App", responses[state], "app-msg");
+      }
+
+      /* ---------- JOURNAL ---------- */
+      function saveJournal() {
+        track("journal_saved", { text: journalInput.value });
+        journalInput.value = "";
+      }
+
+      function saveSelfMessage() {
+        track("self_message_saved", { text: selfMessageInput.value });
+        selfMessageInput.value = "";
+      }
+
+      function handleForgotPassword() {
+        const u = email.value.trim().toLowerCase();
+        const error = document.getElementById("login-error");
+        const info = document.getElementById("reset-info");
+
+        info.innerText = "";
+
+        if (!isValidEmail(u)) {
+          error.innerText = "Enter a valid email first.";
+          return;
+        }
+
+        const users = JSON.parse(localStorage.getItem("users")) || {};
+        if (!users[u]) {
+          error.innerText = "No account found with this email.";
+          return;
+        }
+
+        // DEMO: on génère un "lien" (pas de vrai email sans serveur)
+        const token = Math.random().toString(36).slice(2);
+        users[u].resetToken = token;
+        users[u].resetExpiry = Date.now() + 15 * 60 * 1000; // 15 min
+        localStorage.setItem("users", JSON.stringify(users));
+
+        const resetLink =
+          `${location.origin}${location.pathname}?reset=1&email=${encodeURIComponent(u)}&token=${encodeURIComponent(token)}`;
+
+        info.innerHTML = `Demo reset link (15 min):<br><a href="${resetLink}">${resetLink}</a>`;
+        error.innerText = "";
+      }
+
+      (function applyResetIfPresent() {
+        const params = new URLSearchParams(location.search);
+        if (params.get("reset") !== "1") return;
+
+        const u = (params.get("email") || "").toLowerCase();
+        const token = params.get("token") || "";
+
+        const users = JSON.parse(localStorage.getItem("users")) || {};
+        const user = users[u];
+
+        if (!user || user.resetToken !== token || Date.now() > user.resetExpiry) {
+          alert("Invalid or expired reset link.");
+          return;
+        }
+
+        const newPass = prompt("Enter your NEW password (8+ chars, upper/lower/symbol):");
+        if (!newPass) return;
+
+        if (!isValidPassword(newPass)) {
+          alert("Password does not meet requirements.");
+          return;
+        }
+
+        user.password = newPass;
+        user.resetToken = null;
+        user.resetExpiry = null;
+        users[u] = user;
+        localStorage.setItem("users", JSON.stringify(users));
+
+        alert("Password updated! You can now log in.");
+
+        history.replaceState({}, document.title, location.pathname); // nettoie l’URL
+      })();
+
+
+
+      let breathingTimer = null;
+      let breathingPhase = "inhale"; // inhale/exhale
+
+      function startBreathing() {
+        const heart = document.getElementById("heart");
+        const hint = document.getElementById("breathingHint");
+
+        heart.classList.add("breathing");
+        hint.innerText = "Inhale…";
+        breathingPhase = "inhale";
+
+        track("breathing_started");
+
+        // 6s cycle: 3s inhale (grow), 3s exhale (shrink)
+        clearInterval(breathingTimer);
+        breathingTimer = setInterval(() => {
+          breathingPhase = (breathingPhase === "inhale") ? "exhale" : "inhale";
+          hint.innerText = (breathingPhase === "inhale") ? "Inhale…" : "Exhale…";
+          track("breathing_phase", { phase: breathingPhase });
+        }, 3000);
+      }
+
+      function stopBreathing() {
+        const heart = document.getElementById("heart");
+        const hint = document.getElementById("breathingHint");
+
+        heart.classList.remove("breathing");
+        hint.innerText = "";
+
+        clearInterval(breathingTimer);
+        breathingTimer = null;
+
+        track("breathing_stopped");
+      }
+
+
+
+
+    </script>
 
 </body>
+
 </html>
