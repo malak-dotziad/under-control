@@ -246,11 +246,22 @@
       height: 42px;
       border-radius: 50%;
       background: linear-gradient(135deg, #ffc3a0 0%, #ffafbd 100%);
-      display: grid;
-      place-items: center;
+      display: flex;
+      align-items: center;
+      justify-content: center;
       color: #fff;
       font-weight: 700;
+      font-size: 14px;
+      line-height: 1;
+      letter-spacing: 0.3px;
       box-shadow: 0 4px 10px rgba(255, 175, 189, 0.4);
+      text-align: center;
+    }
+
+    .avatar span {
+      display: block;
+      transform: none;
+      transform-origin: center;
     }
 
     .hero {
@@ -599,13 +610,13 @@
         <div class="header-right">
           <div class="mood-pill" id="moodDisplay">Take a breath</div>
           <button class="disconnect-btn" onclick="handleDisconnect()">Disconnect</button>
-          <div class="avatar">UC</div>
+          <div class="avatar" id="userAvatar"><span>UC</span></div>
         </div>
       </div>
 
       <div class="hero">
         <div>
-          <div class="hero-title">Stay soft with yourself</div>
+          <div class="hero-title" id="userGreeting">Stay soft with yourself</div>
           <p>You are safe here. Take a moment to untangle your thoughts.</p>
         </div>
         <div class="hero-art">
@@ -730,15 +741,15 @@
       </div>
     </div>
 
-  <script>
-    const email = document.getElementById("email");
-    const password = document.getElementById("password");
-    const chatInput = document.getElementById("chatInput");
-    const chatBox = document.getElementById("chatBox");
-    const journalInput = document.getElementById("journalInput");
-    const selfMessageInput = document.getElementById("selfMessageInput");
+    <script>
+      const email = document.getElementById("email");
+      const password = document.getElementById("password");
+      const chatInput = document.getElementById("chatInput");
+      const chatBox = document.getElementById("chatBox");
+      const journalInput = document.getElementById("journalInput");
+      const selfMessageInput = document.getElementById("selfMessageInput");
 
-    let currentUser = null;
+      let currentUser = null;
 
       /* ---------- TRACKING ---------- */
       function track(event, payload = {}) {
@@ -864,6 +875,7 @@
         document.getElementById("login-box").style.display = "none";
         document.getElementById("app").style.display = "flex";
         renderPanicPersonal();
+        updateGreeting();
       }
 
       /* ---------- NAV ---------- */
@@ -883,6 +895,7 @@
         // Clear inputs
         document.getElementById("email").value = "";
         document.getElementById("password").value = "";
+        updateGreeting();
       }
 
       function openSection(e, id) {
@@ -890,6 +903,28 @@
         document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
         document.getElementById(id).classList.add("active");
         e.target.classList.add("active");
+      }
+
+      function formatUserName(emailValue) {
+        if (!emailValue) return "there";
+        const base = emailValue.split("@")[0] || emailValue;
+        const cleaned = base.replace(/[^a-zA-Z0-9._-]/g, " ").trim();
+        const parts = cleaned.split(/[._-]+/).filter(Boolean);
+        const name = parts.length ? parts[0] : cleaned;
+        return name ? name.charAt(0).toUpperCase() + name.slice(1) : "there";
+      }
+
+      function updateGreeting() {
+        const greeting = document.getElementById("userGreeting");
+        const avatar = document.getElementById("userAvatar");
+        const name = formatUserName(currentUser || "");
+        if (greeting) {
+          greeting.textContent = currentUser ? `Hi, ${name}` : "Stay soft with yourself";
+        }
+        if (avatar) {
+          const initials = name ? name.charAt(0).toUpperCase() : "U";
+          avatar.innerHTML = `<span>${initials}</span>`;
+        }
       }
 
       /* ---------- CHAT ---------- */
