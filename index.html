@@ -231,6 +231,8 @@
       display: flex;
       align-items: center;
       gap: 12px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
     }
 
     .mood-pill {
@@ -337,6 +339,7 @@
       font-weight: 700;
       transition: all 0.2s;
       border: 1px solid transparent;
+      white-space: nowrap;
     }
 
     .tab:hover {
@@ -552,9 +555,9 @@
       }
 
       .header {
-        flex-direction: row;
-        /* Keep row even on mobile if possible, or stack safely */
-        flex-wrap: wrap;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
       }
 
       .tabs {
@@ -565,6 +568,47 @@
       .tab {
         font-size: 13px;
         padding: 8px 14px;
+        flex: 1 1 auto;
+        min-width: 120px;
+      }
+
+      .hero {
+        padding: 16px;
+      }
+
+      .hero-title {
+        font-size: 24px;
+      }
+
+      .section {
+        padding: 16px;
+      }
+
+      textarea {
+        height: 140px;
+      }
+
+      .breathing-wrap {
+        height: 220px;
+      }
+    }
+
+    @media (max-width: 420px) {
+      .app-shell {
+        padding: 14px;
+      }
+
+      .brand {
+        font-size: 20px;
+      }
+
+      .mood-pill {
+        padding: 6px 10px;
+        font-size: 12px;
+      }
+
+      .disconnect-btn {
+        width: 100%;
       }
     }
   </style>
