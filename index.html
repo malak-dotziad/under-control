@@ -610,6 +610,7 @@
         </div>
         <div class="header-right">
           <div class="mood-pill" id="moodDisplay">Take a breath</div>
+          <div class="mood-pill" id="messageBadge" style="display:none;">0 new</div>
           <button class="disconnect-btn" onclick="handleDisconnect()">Disconnect</button>
           <div class="avatar" id="userAvatar"><span>UC</span></div>
         </div>
@@ -679,15 +680,18 @@
         <div id="journalEntries" style="margin-top:16px;"></div>
       </div>
 
-        <!-- MESSAGE TO SELF -->
-        <div class="section" id="message">
-          <div class="section-title">
-            <h2>Message to yourself</h2>
-            <span class="badge">Gentle reminder</span>
-          </div>
-          <textarea id="selfMessageInput" placeholder="Something kind for later."></textarea>
-          <button onclick="saveSelfMessage()">Save message</button>
+      <!-- MESSAGE TO SELF -->
+      <div class="section" id="message">
+        <div class="section-title">
+          <h2>Message to yourself</h2>
+          <span class="badge">Gentle reminder</span>
         </div>
+        <textarea id="selfMessageInput" placeholder="Something kind for later."></textarea>
+        <input id="selfMessageDate" type="datetime-local" style="margin-top:10px;" />
+        <button onclick="saveSelfMessage()">Save message</button>
+        <div id="selfMessageNotice" style="margin-top:16px;"></div>
+        <div id="selfMessageUpcoming" style="margin-top:12px;"></div>
+      </div>
 
         <!-- PANIC -->
         <div class="section" id="panic">
@@ -754,20 +758,53 @@
     const chatBox = document.getElementById("chatBox");
     const journalInput = document.getElementById("journalInput");
     const selfMessageInput = document.getElementById("selfMessageInput");
+    const selfMessageDate = document.getElementById("selfMessageDate");
 
     let currentUser = null;
     let currentUserId = null;
+    let sessionId = null;
+    let sessionStartedAt = null;
 
       /* ---------- TRACKING ---------- */
-      function track(event, payload = {}) {
+      async function track(event, payload = {}) {
+        const payloadWithSession = {
+          ...payload,
+          sessionId: sessionId || null
+        };
         const events = JSON.parse(localStorage.getItem("events")) || [];
         events.push({
           userId: currentUserId || currentUser || "anonymous",
           event,
-          payload,
+          payload: payloadWithSession,
           timestamp: new Date().toISOString()
         });
         localStorage.setItem("events", JSON.stringify(events));
+
+        try {
+          if (!currentUserId) return;
+          await supabaseClient.from("events").insert({
+            user_id: currentUserId,
+            event,
+            payload: payloadWithSession,
+            created_at: new Date().toISOString()
+          });
+        } catch (e) {
+          console.warn("Track insert failed", e);
+        }
+      }
+
+      function startSession() {
+        sessionId = crypto.randomUUID();
+        sessionStartedAt = Date.now();
+        track("session_start", { sessionId });
+      }
+
+      function endSession(reason = "unknown") {
+        if (!sessionId || !sessionStartedAt) return;
+        const durationMs = Date.now() - sessionStartedAt;
+        track("session_end", { sessionId, durationMs, reason });
+        sessionId = null;
+        sessionStartedAt = null;
       }
 
       function savePanicPersonal() {
@@ -889,6 +926,8 @@
         renderPanicPersonal();
         updateGreeting();
         renderJournalEntries();
+        renderSelfMessages();
+        startSession();
       }
 
       /* ---------- NAV ---------- */
@@ -899,6 +938,7 @@
         currentUser = null;
         currentUserId = null;
         track("user_disconnected");
+        endSession("disconnect");
 
         // Stop any active breathing session
         stopBreathing();
@@ -912,6 +952,7 @@
         document.getElementById("password").value = "";
         updateGreeting();
         renderJournalEntries();
+        renderSelfMessages();
       }
 
       function openSection(e, id) {
@@ -919,6 +960,9 @@
         document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
         document.getElementById(id).classList.add("active");
         e.target.classList.add("active");
+        if (id === "chat") {
+          track("chat_opened");
+        }
       }
 
       function formatUserName(emailValue) {
@@ -990,6 +1034,130 @@
         `).join("");
       }
 
+      function getSelfMessageKey(userEmail) {
+        return `self_messages_${userEmail || "anonymous"}`;
+      }
+
+      function renderSelfMessages() {
+        const notice = document.getElementById("selfMessageNotice");
+        const upcomingBox = document.getElementById("selfMessageUpcoming");
+        if (!notice || !upcomingBox) return;
+
+        if (!currentUser) {
+          notice.innerHTML = `<p style="color: var(--text-soft);">Log in to see your messages.</p>`;
+          upcomingBox.innerHTML = "";
+          return;
+        }
+
+        const key = getSelfMessageKey(currentUser);
+        const entries = JSON.parse(localStorage.getItem(key)) || [];
+        const normalized = entries.map(entry => ({
+          ...entry,
+          id: entry.id || crypto.randomUUID()
+        }));
+        if (normalized.length !== entries.length || normalized.some((e, i) => e.id !== entries[i].id)) {
+          localStorage.setItem(key, JSON.stringify(normalized));
+        }
+        const now = Date.now();
+        let updated = false;
+
+        const delivered = [];
+        const upcoming = [];
+
+        normalized.forEach(entry => {
+          const dueTime = new Date(entry.deliverAt).getTime();
+          if (!entry.deliverAt || Number.isNaN(dueTime)) {
+            return;
+          }
+
+          if (dueTime <= now) {
+            if (!entry.deliveredAt) {
+              entry.deliveredAt = new Date().toISOString();
+              updated = true;
+            }
+            delivered.push(entry);
+          } else {
+            upcoming.push(entry);
+          }
+        });
+
+        if (updated) {
+          localStorage.setItem(key, JSON.stringify(entries));
+        }
+
+        const badge = document.getElementById("messageBadge");
+        if (badge) {
+          if (delivered.length) {
+            badge.style.display = "inline-block";
+            badge.textContent = `${delivered.length} new`;
+          } else {
+            badge.style.display = "none";
+          }
+        }
+
+        if (!delivered.length) {
+          notice.innerHTML = `<p style="color: var(--text-soft);">No messages due yet.</p>`;
+        } else {
+          notice.innerHTML = delivered.map(entry => `
+            <div style="background: #fff; border-radius: 14px; padding: 12px 14px; margin-bottom: 10px; border: 1px solid rgba(0,0,0,0.06); box-shadow: var(--shadow-soft);">
+              <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom: 6px;">
+                <div style="font-size: 12px; color: var(--text-soft);">Delivered ${formatDate(entry.deliveredAt)}</div>
+                <div style="display:flex; gap:6px;">
+                  <button class="secondary" style="width:auto; padding:6px 10px; font-size:12px;" onclick="deleteSelfMessage('${entry.id}')">Delete</button>
+                </div>
+              </div>
+              <div style="white-space: pre-wrap;">${entry.text}</div>
+            </div>
+          `).join("");
+        }
+
+        if (!upcoming.length) {
+          upcomingBox.innerHTML = "";
+        } else {
+          upcomingBox.innerHTML = `
+            <div style="font-size: 12px; color: var(--text-soft); margin-bottom: 6px;">Upcoming</div>
+            ${upcoming.map(entry => `
+              <div style="background: #fff; border-radius: 14px; padding: 10px 12px; margin-bottom: 8px; border: 1px dashed rgba(0,0,0,0.08);">
+                <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom: 4px;">
+                  <div style="font-size: 12px; color: var(--text-soft);">${formatDate(entry.deliverAt)}</div>
+                  <div style="display:flex; gap:6px;">
+                    <button class="secondary" style="width:auto; padding:6px 10px; font-size:12px;" onclick="editSelfMessage('${entry.id}')">Edit</button>
+                    <button class="secondary" style="width:auto; padding:6px 10px; font-size:12px;" onclick="deleteSelfMessage('${entry.id}')">Delete</button>
+                  </div>
+                </div>
+                <div style="white-space: pre-wrap;">${entry.text}</div>
+              </div>
+            `).join("")}
+          `;
+        }
+      }
+
+      function deleteSelfMessage(id) {
+        if (!currentUser) return;
+        if (!confirm("Delete this message?")) return;
+
+        const key = getSelfMessageKey(currentUser);
+        const entries = JSON.parse(localStorage.getItem(key)) || [];
+        const next = entries.filter(entry => entry.id !== id);
+        localStorage.setItem(key, JSON.stringify(next));
+        track("self_message_deleted", { id });
+        renderSelfMessages();
+      }
+
+      function editSelfMessage(id) {
+        if (!currentUser) return;
+
+        const key = getSelfMessageKey(currentUser);
+        const entries = JSON.parse(localStorage.getItem(key)) || [];
+        const entry = entries.find(item => item.id === id);
+        if (!entry) return;
+
+        selfMessageInput.value = entry.text;
+        selfMessageDate.value = entry.deliverAt || "";
+        selfMessageInput.dataset.editingId = id;
+        selfMessageInput.focus();
+      }
+
       function deleteJournalEntry(index) {
         if (!currentUser) return;
         if (!confirm("Delete this entry?")) return;
@@ -1053,7 +1221,9 @@
           panic: "Breathe slowly. You’re safe.",
           neutral: "Thank you for sharing."
         };
-        addMessage("App", responses[state], "app-msg");
+        const text = responses[state];
+        addMessage("App", text, "app-msg");
+        track("chat_app_response", { state, text });
       }
 
       /* ---------- JOURNAL ---------- */
@@ -1092,8 +1262,49 @@
       }
 
       function saveSelfMessage() {
-        track("self_message_saved", { text: selfMessageInput.value });
+        if (!currentUser) {
+          alert("Please log in first.");
+          return;
+        }
+
+        const text = selfMessageInput.value.trim();
+        const deliverAt = selfMessageDate.value;
+        if (!text) return;
+        if (!deliverAt) {
+          alert("Please choose a date and time.");
+          return;
+        }
+
+        const key = getSelfMessageKey(currentUser);
+        const entries = JSON.parse(localStorage.getItem(key)) || [];
+        const editingId = selfMessageInput.dataset.editingId || "";
+
+        if (editingId) {
+          const idx = entries.findIndex(item => item.id === editingId);
+          if (idx >= 0) {
+            entries[idx] = {
+              ...entries[idx],
+              text,
+              deliverAt,
+              editedAt: new Date().toISOString()
+            };
+          }
+          selfMessageInput.dataset.editingId = "";
+        } else {
+          entries.unshift({
+            id: crypto.randomUUID(),
+            text,
+            deliverAt,
+            createdAt: new Date().toISOString(),
+            deliveredAt: null
+          });
+        }
+
+        localStorage.setItem(key, JSON.stringify(entries));
+        track("self_message_saved", { length: text.length, deliverAt });
         selfMessageInput.value = "";
+        selfMessageDate.value = "";
+        renderSelfMessages();
       }
 
       async function handleForgotPassword() {
@@ -1134,9 +1345,21 @@
         renderPanicPersonal();
         updateGreeting();
         renderJournalEntries();
+        renderSelfMessages();
+        startSession();
       }
 
       restoreSession();
+
+      setInterval(() => {
+        if (currentUser) {
+          renderSelfMessages();
+        }
+      }, 30000);
+
+      window.addEventListener("beforeunload", () => {
+        endSession("beforeunload");
+      });
 
 
 
