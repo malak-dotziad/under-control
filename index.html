@@ -4,6 +4,7 @@
 <head>
   <meta charset="UTF-8" />
   <title>Under Control</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700&family=Nunito:wght@400;600;700&display=swap');
@@ -668,14 +669,15 @@
         </div>
 
         <!-- JOURNAL -->
-        <div class="section" id="journal">
-          <div class="section-title">
-            <h2>Journal</h2>
-            <span class="badge" style="background: var(--accent-green); color:#295444;">Private space</span>
-          </div>
-          <textarea id="journalInput" placeholder="Write freely. No judgement."></textarea>
-          <button onclick="saveJournal()">Save</button>
+      <div class="section" id="journal">
+        <div class="section-title">
+          <h2>Journal</h2>
+          <span class="badge" style="background: var(--accent-green); color:#295444;">Private space</span>
         </div>
+        <textarea id="journalInput" placeholder="Write freely. No judgement."></textarea>
+        <button onclick="saveJournal()">Save</button>
+        <div id="journalEntries" style="margin-top:16px;"></div>
+      </div>
 
         <!-- MESSAGE TO SELF -->
         <div class="section" id="message">
@@ -741,21 +743,26 @@
       </div>
     </div>
 
-    <script>
-      const email = document.getElementById("email");
-      const password = document.getElementById("password");
-      const chatInput = document.getElementById("chatInput");
-      const chatBox = document.getElementById("chatBox");
-      const journalInput = document.getElementById("journalInput");
-      const selfMessageInput = document.getElementById("selfMessageInput");
+  <script>
+    const SUPABASE_URL = "https://cccygdsrruoqwnmmjmeo.supabase.co";
+    const SUPABASE_ANON_KEY = "sb_publishable_LhOkiTVrCP8YLTGiS1yx4w_dDYKbTzI";
+    const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-      let currentUser = null;
+    const email = document.getElementById("email");
+    const password = document.getElementById("password");
+    const chatInput = document.getElementById("chatInput");
+    const chatBox = document.getElementById("chatBox");
+    const journalInput = document.getElementById("journalInput");
+    const selfMessageInput = document.getElementById("selfMessageInput");
+
+    let currentUser = null;
+    let currentUserId = null;
 
       /* ---------- TRACKING ---------- */
       function track(event, payload = {}) {
         const events = JSON.parse(localStorage.getItem("events")) || [];
         events.push({
-          userId: currentUser || "anonymous",
+          userId: currentUserId || currentUser || "anonymous",
           event,
           payload,
           timestamp: new Date().toISOString()
@@ -825,7 +832,7 @@
         return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e);
       }
 
-      function handleSignup() {
+      async function handleSignup() {
         const u = email.value.trim().toLowerCase();
         const p = password.value;
         const error = document.getElementById("login-error");
@@ -840,49 +847,57 @@
           return;
         }
 
-        const users = JSON.parse(localStorage.getItem("users")) || {};
-        if (users[u]) {
-          error.innerText = "User already exists.";
+        const { error: signUpError } = await supabaseClient.auth.signUp({
+          email: u,
+          password: p
+        });
+
+        if (signUpError) {
+          error.style.color = "red";
+          error.innerText = signUpError.message || "Signup failed.";
           return;
         }
 
-        // important: garder aussi resetToken/resetExpiry pour le reset
-        users[u] = { password: p, resetToken: null, resetExpiry: null };
-
-        localStorage.setItem("users", JSON.stringify(users));
         track("account_created", { email: u });
-
         error.style.color = "green";
-        error.innerText = "Account created. You can log in.";
+        error.innerText = "Account created. Check your email to confirm, then log in.";
       }
 
 
-      function handleLogin() {
+      async function handleLogin() {
         const u = email.value.trim().toLowerCase();
         const p = password.value;
-        const users = JSON.parse(localStorage.getItem("users")) || {};
         const error = document.getElementById("login-error");
 
-        if (!users[u] || users[u].password !== p) {
-          error.innerText = "Invalid login.";
+        const { data, error: signInError } = await supabaseClient.auth.signInWithPassword({
+          email: u,
+          password: p
+        });
+
+        if (signInError || !data?.user) {
+          error.innerText = signInError?.message || "Invalid login.";
           track("login_failed", { email: u });
           return;
         }
 
-        currentUser = u;
+        currentUser = data.user.email;
+        currentUserId = data.user.id;
         track("login_success", { email: u });
 
         document.getElementById("login-box").style.display = "none";
         document.getElementById("app").style.display = "flex";
         renderPanicPersonal();
         updateGreeting();
+        renderJournalEntries();
       }
 
       /* ---------- NAV ---------- */
-      function handleDisconnect() {
+      async function handleDisconnect() {
         if (!confirm("Are you sure you want to disconnect?")) return;
 
+        await supabaseClient.auth.signOut();
         currentUser = null;
+        currentUserId = null;
         track("user_disconnected");
 
         // Stop any active breathing session
@@ -896,6 +911,7 @@
         document.getElementById("email").value = "";
         document.getElementById("password").value = "";
         updateGreeting();
+        renderJournalEntries();
       }
 
       function openSection(e, id) {
@@ -925,6 +941,78 @@
           const initials = name ? name.charAt(0).toUpperCase() : "U";
           avatar.innerHTML = `<span>${initials}</span>`;
         }
+      }
+
+      function getJournalKey(userEmail) {
+        return `journal_entries_${userEmail || "anonymous"}`;
+      }
+
+      function formatDate(iso) {
+        const d = new Date(iso);
+        if (Number.isNaN(d.getTime())) return "";
+        return d.toLocaleString(undefined, {
+          year: "numeric",
+          month: "short",
+          day: "numeric",
+          hour: "2-digit",
+          minute: "2-digit"
+        });
+      }
+
+      function renderJournalEntries() {
+        const box = document.getElementById("journalEntries");
+        if (!box) return;
+
+        if (!currentUser) {
+          box.innerHTML = `<p style="color: var(--text-soft);">Log in to see your saved entries.</p>`;
+          return;
+        }
+
+        const key = getJournalKey(currentUser);
+        const entries = JSON.parse(localStorage.getItem(key)) || [];
+
+        if (!entries.length) {
+          box.innerHTML = `<p style="color: var(--text-soft);">No entries yet. Your saved notes will appear here.</p>`;
+          return;
+        }
+
+        box.innerHTML = entries.map((entry, index) => `
+          <div style="background: #fff; border-radius: 14px; padding: 12px 14px; margin-bottom: 10px; border: 1px solid rgba(0,0,0,0.06); box-shadow: var(--shadow-soft);">
+            <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom: 6px;">
+              <div style="font-size: 12px; color: var(--text-soft);">${formatDate(entry.createdAt)}</div>
+              <div style="display:flex; gap:6px;">
+                <button class="secondary" style="width:auto; padding:6px 10px; font-size:12px;" onclick="editJournalEntry(${index})">Edit</button>
+                <button class="secondary" style="width:auto; padding:6px 10px; font-size:12px;" onclick="deleteJournalEntry(${index})">Delete</button>
+              </div>
+            </div>
+            <div style="white-space: pre-wrap;">${entry.text}</div>
+          </div>
+        `).join("");
+      }
+
+      function deleteJournalEntry(index) {
+        if (!currentUser) return;
+        if (!confirm("Delete this entry?")) return;
+
+        const key = getJournalKey(currentUser);
+        const entries = JSON.parse(localStorage.getItem(key)) || [];
+        entries.splice(index, 1);
+        localStorage.setItem(key, JSON.stringify(entries));
+        track("journal_deleted", { index });
+        renderJournalEntries();
+      }
+
+      function editJournalEntry(index) {
+        if (!currentUser) return;
+
+        const key = getJournalKey(currentUser);
+        const entries = JSON.parse(localStorage.getItem(key)) || [];
+        const entry = entries[index];
+        if (!entry) return;
+
+        journalInput.value = entry.text;
+        journalInput.dataset.editingIndex = String(index);
+        journalInput.focus();
       }
 
       /* ---------- CHAT ---------- */
@@ -970,8 +1058,37 @@
 
       /* ---------- JOURNAL ---------- */
       function saveJournal() {
-        track("journal_saved", { text: journalInput.value });
+        if (!currentUser) {
+          alert("Please log in first.");
+          return;
+        }
+
+        const text = journalInput.value.trim();
+        if (!text) return;
+
+        const key = getJournalKey(currentUser);
+        const entries = JSON.parse(localStorage.getItem(key)) || [];
+        const editingIndex = parseInt(journalInput.dataset.editingIndex || "-1", 10);
+
+        if (editingIndex >= 0 && entries[editingIndex]) {
+          entries[editingIndex] = {
+            ...entries[editingIndex],
+            text,
+            editedAt: new Date().toISOString()
+          };
+          journalInput.dataset.editingIndex = "";
+          track("journal_edited", { index: editingIndex });
+        } else {
+          entries.unshift({
+            text,
+            createdAt: new Date().toISOString()
+          });
+        }
+
+        localStorage.setItem(key, JSON.stringify(entries));
+        track("journal_saved", { length: text.length });
         journalInput.value = "";
+        renderJournalEntries();
       }
 
       function saveSelfMessage() {
@@ -979,7 +1096,7 @@
         selfMessageInput.value = "";
       }
 
-      function handleForgotPassword() {
+      async function handleForgotPassword() {
         const u = email.value.trim().toLowerCase();
         const error = document.getElementById("login-error");
         const info = document.getElementById("reset-info");
@@ -991,58 +1108,35 @@
           return;
         }
 
-        const users = JSON.parse(localStorage.getItem("users")) || {};
-        if (!users[u]) {
-          error.innerText = "No account found with this email.";
+        const { error: resetError } = await supabaseClient.auth.resetPasswordForEmail(u, {
+          redirectTo: `${location.origin}${location.pathname}`
+        });
+
+        if (resetError) {
+          error.innerText = resetError.message || "Reset failed.";
           return;
         }
 
-        // DEMO: on génère un "lien" (pas de vrai email sans serveur)
-        const token = Math.random().toString(36).slice(2);
-        users[u].resetToken = token;
-        users[u].resetExpiry = Date.now() + 15 * 60 * 1000; // 15 min
-        localStorage.setItem("users", JSON.stringify(users));
-
-        const resetLink =
-          `${location.origin}${location.pathname}?reset=1&email=${encodeURIComponent(u)}&token=${encodeURIComponent(token)}`;
-
-        info.innerHTML = `Demo reset link (15 min):<br><a href="${resetLink}">${resetLink}</a>`;
+        info.innerText = "Check your email for a password reset link.";
         error.innerText = "";
       }
 
-      (function applyResetIfPresent() {
-        const params = new URLSearchParams(location.search);
-        if (params.get("reset") !== "1") return;
+      async function restoreSession() {
+        const { data } = await supabaseClient.auth.getSession();
+        const user = data?.session?.user;
+        if (!user) return;
 
-        const u = (params.get("email") || "").toLowerCase();
-        const token = params.get("token") || "";
+        currentUser = user.email;
+        currentUserId = user.id;
 
-        const users = JSON.parse(localStorage.getItem("users")) || {};
-        const user = users[u];
+        document.getElementById("login-box").style.display = "none";
+        document.getElementById("app").style.display = "flex";
+        renderPanicPersonal();
+        updateGreeting();
+        renderJournalEntries();
+      }
 
-        if (!user || user.resetToken !== token || Date.now() > user.resetExpiry) {
-          alert("Invalid or expired reset link.");
-          return;
-        }
-
-        const newPass = prompt("Enter your NEW password (8+ chars, upper/lower/symbol):");
-        if (!newPass) return;
-
-        if (!isValidPassword(newPass)) {
-          alert("Password does not meet requirements.");
-          return;
-        }
-
-        user.password = newPass;
-        user.resetToken = null;
-        user.resetExpiry = null;
-        users[u] = user;
-        localStorage.setItem("users", JSON.stringify(users));
-
-        alert("Password updated! You can now log in.");
-
-        history.replaceState({}, document.title, location.pathname); // nettoie l’URL
-      })();
+      restoreSession();
 
 
 
