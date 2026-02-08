@@ -431,6 +431,33 @@
       border-bottom-left-radius: 2px;
     }
 
+    .typing {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .typing .dot {
+      width: 6px;
+      height: 6px;
+      background: #8fb3d1;
+      border-radius: 50%;
+      animation: typingPulse 1.2s infinite ease-in-out;
+    }
+
+    .typing .dot:nth-child(2) {
+      animation-delay: 0.2s;
+    }
+
+    .typing .dot:nth-child(3) {
+      animation-delay: 0.4s;
+    }
+
+    @keyframes typingPulse {
+      0%, 80%, 100% { transform: scale(0.6); opacity: 0.5; }
+      40% { transform: scale(1); opacity: 1; }
+    }
+
     .user-msg {
       background: var(--bg-accent-soft);
       color: #7a5c5c;
@@ -943,7 +970,7 @@
 
         track("account_created", { email: u });
         error.style.color = "green";
-        error.innerText = "Account created. Check your email to confirm, then log in.";
+        error.innerText = "Account created. You can log in now.";
       }
 
 
@@ -1263,6 +1290,21 @@
         div.className = `chat-message ${cls}`;
         div.innerText = `${sender}: ${text}`;
         chatBox.appendChild(div);
+        chatBox.scrollTop = chatBox.scrollHeight;
+      }
+
+      function addTypingIndicator() {
+        const div = document.createElement("div");
+        div.className = "chat-message app-msg";
+        div.id = "typingIndicator";
+        div.innerHTML = `App: <span class="typing"><span class="dot"></span><span class="dot"></span><span class="dot"></span></span>`;
+        chatBox.appendChild(div);
+        chatBox.scrollTop = chatBox.scrollHeight;
+      }
+
+      function removeTypingIndicator() {
+        const existing = document.getElementById("typingIndicator");
+        if (existing) existing.remove();
       }
 
       function detectState(t) {
@@ -1276,6 +1318,7 @@
 
       async function respondWithAI(message) {
         try {
+          addTypingIndicator();
           const res = await fetch("/api/ai-chat", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -1286,17 +1329,20 @@
           if (!res.ok || data?.error) {
             const errMsg = data?.error || `AI error (${res.status})`;
             const fallback = "I’m here with you. The AI isn’t available right now—can we try again in a moment?";
+            removeTypingIndicator();
             addMessage("App", fallback, "app-msg");
             track("chat_ai_error", { error: errMsg });
             return;
           }
 
           const text = data?.text || "I’m here with you. Want to share a bit more?";
+          removeTypingIndicator();
           addMessage("App", text, "app-msg");
           chatHistory.push({ role: "assistant", text });
           track("chat_ai_response", { text });
         } catch (e) {
           const fallback = "I’m here with you. Something went wrong, but we can try again.";
+          removeTypingIndicator();
           addMessage("App", fallback, "app-msg");
           track("chat_ai_error");
         }
