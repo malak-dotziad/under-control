@@ -47,26 +47,21 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: "Message is required" });
   }
 
-  const input = [
-    {
-      role: "system",
-      content: [{ type: "input_text", text: systemPrompt }],
-    },
-  ];
+  const input = [];
 
   if (Array.isArray(history)) {
     for (const h of history.slice(-6)) {
       if (!h || !h.role || !h.text) continue;
       input.push({
         role: h.role === "assistant" ? "assistant" : "user",
-        content: [{ type: "input_text", text: String(h.text) }],
+        content: String(h.text),
       });
     }
   }
 
   input.push({
     role: "user",
-    content: [{ type: "input_text", text: message }],
+    content: message,
   });
 
   try {
@@ -78,6 +73,7 @@ export default async function handler(req, res) {
       },
       body: JSON.stringify({
         model: process.env.OPENAI_MODEL || "gpt-4o",
+        instructions: systemPrompt,
         input,
         temperature: 0.7,
         max_output_tokens: 220,
