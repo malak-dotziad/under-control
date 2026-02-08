@@ -38,6 +38,7 @@ export default async function handler(req, res) {
 
   const apiKey = process.env.OPENAI_API_KEY;
   if (!apiKey) {
+    console.error("Missing OPENAI_API_KEY");
     return res.status(500).json({ error: "Missing OPENAI_API_KEY" });
   }
 
@@ -85,6 +86,7 @@ export default async function handler(req, res) {
 
     if (!response.ok) {
       const errText = await response.text();
+      console.error("OpenAI error:", response.status, errText);
       return res.status(response.status).json({ error: errText });
     }
 
@@ -92,6 +94,7 @@ export default async function handler(req, res) {
     const text = extractText(data) || "I’m here with you. Want to share a bit more?";
     return res.status(200).json({ text });
   } catch (err) {
+    console.error("AI request failed:", err?.message || err);
     return res.status(500).json({ error: "AI request failed" });
   }
 }
