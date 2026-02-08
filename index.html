@@ -809,6 +809,7 @@
     let currentUserId = null;
     let sessionId = null;
     let sessionStartedAt = null;
+    const chatHistory = [];
 
       /* ---------- TRACKING ---------- */
       async function track(event, payload = {}) {
@@ -1250,12 +1251,11 @@
         if (!input) return;
 
         addMessage("You", input, "user-msg");
+        chatHistory.push({ role: "user", text: input });
         chatInput.value = "";
         track("chat_message_sent", { text: input });
 
-        const state = detectState(input);
-        track("state_detected", { state });
-        respond(state);
+        respondWithAI(input);
       }
 
       function addMessage(sender, text, cls) {
@@ -1274,17 +1274,24 @@
         return "neutral";
       }
 
-      function respond(state) {
-        const responses = {
-          tired: "It sounds like you’re exhausted. Rest matters.",
-          anxious: "Let’s slow things down. One step at a time.",
-          sad: "You don’t need to be strong right now.",
-          panic: "Breathe slowly. You’re safe.",
-          neutral: "Thank you for sharing."
-        };
-        const text = responses[state];
-        addMessage("App", text, "app-msg");
-        track("chat_app_response", { state, text });
+      async function respondWithAI(message) {
+        try {
+          const res = await fetch("/api/ai-chat", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ message, history: chatHistory.slice(-6) })
+          });
+
+          const data = await res.json();
+          const text = data?.text || "I’m here with you. Want to share a bit more?";
+          addMessage("App", text, "app-msg");
+          chatHistory.push({ role: "assistant", text });
+          track("chat_ai_response", { text });
+        } catch (e) {
+          const fallback = "I’m here with you. Something went wrong, but we can try again.";
+          addMessage("App", fallback, "app-msg");
+          track("chat_ai_error");
+        }
       }
 
       /* ---------- JOURNAL ---------- */
