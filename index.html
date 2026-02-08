@@ -655,7 +655,7 @@
         </div>
         <div class="header-right">
           <div class="mood-pill" id="moodDisplay">Take a breath</div>
-          <div class="mood-pill" id="messageBadge" style="display:none;">0 new</div>
+          <button class="mood-pill" id="messageBadge" style="display:none; border:none; cursor:pointer;" onclick="openMessageReminders()">0 new</button>
           <button class="disconnect-btn" onclick="handleDisconnect()">Disconnect</button>
           <div class="avatar" id="userAvatar"><span>UC</span></div>
         </div>
@@ -1010,6 +1010,22 @@
         }
       }
 
+      function openMessageReminders() {
+        const messageTab = Array.from(document.querySelectorAll(".tab")).find(tab => tab.textContent.trim() === "Message to self");
+        if (messageTab) {
+          messageTab.click();
+        } else {
+          const section = document.getElementById("message");
+          if (section) {
+            document.querySelectorAll(".section").forEach(s => s.classList.remove("active"));
+            section.classList.add("active");
+          }
+        }
+        const section = document.getElementById("message");
+        if (section) {
+          section.scrollIntoView({ behavior: "smooth", block: "start" });
+        }
+      }
       function formatUserName(emailValue) {
         if (!emailValue) return "there";
         const base = emailValue.split("@")[0] || emailValue;
