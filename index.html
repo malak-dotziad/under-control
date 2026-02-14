@@ -658,17 +658,37 @@
     <h1>Under Control</h1>
     <p style="color: var(--text-soft); margin-top: -6px; font-size: 15px;">A safe space for your mind.</p>
 
-    <input id="email" type="email" placeholder="Email address" />
-    <input id="password" type="password" placeholder="Password" />
+    <!-- LOGIN FORM (default) -->
+<div id="login-form">
+  <input id="email" type="email" placeholder="Email address" />
+  <input id="password" type="password" placeholder="Password" />
 
-    <p id="login-error" class="error"></p>
+  <p id="login-error" class="error"></p>
 
-    <button onclick="handleLogin()">Log in</button>
-    <button class="secondary" onclick="handleSignup()">Create account</button>
-    <button class="secondary"
-      style="background:transparent; border:none; box-shadow:none; font-weight:600; font-size:13px; color:#aaa;"
-      onclick="handleForgotPassword()">Forgot password?</button>
-    <p id="reset-info" style="font-size:13px; margin-top:10px;"></p>
+  <button onclick="handleLogin()">Log in</button>
+
+  <button class="secondary" onclick="showSignupForm()">Create account</button>
+
+  <button class="secondary"
+    style="background:transparent; border:none; box-shadow:none; font-weight:600; font-size:13px; color:#aaa;"
+    onclick="handleForgotPassword()">Forgot password?</button>
+
+  <p id="reset-info" style="font-size:13px; margin-top:10px;"></p>
+</div>
+
+<!-- SIGNUP FORM (hidden until click) -->
+<div id="signup-form" style="display:none;">
+  <input id="firstName" type="text" placeholder="First name" />
+  <input id="lastName" type="text" placeholder="Last name" />
+  <input id="signupEmail" type="email" placeholder="Email address" />
+  <input id="signupPassword" type="password" placeholder="Password" />
+
+  <p id="signup-error" class="error"></p>
+
+  <button onclick="handleSignup()">Create my account</button>
+  <button class="secondary" onclick="showLoginForm()">Back to login</button>
+</div>
+
 
   </div>
 
@@ -832,6 +852,26 @@
     const selfMessageInput = document.getElementById("selfMessageInput");
     const selfMessageDate = document.getElementById("selfMessageDate");
 
+    // --- SIGNUP DOM ---
+const firstName = document.getElementById("firstName");
+const lastName = document.getElementById("lastName");
+const signupEmail = document.getElementById("signupEmail");
+const signupPassword = document.getElementById("signupPassword");
+
+function showSignupForm() {
+  document.getElementById("login-form").style.display = "none";
+  document.getElementById("signup-form").style.display = "block";
+  document.getElementById("login-error").innerText = "";
+  document.getElementById("reset-info").innerText = "";
+}
+
+function showLoginForm() {
+  document.getElementById("signup-form").style.display = "none";
+  document.getElementById("login-form").style.display = "block";
+  document.getElementById("signup-error").innerText = "";
+}
+
+
     let currentUser = null;
     let currentUserId = null;
     let sessionId = null;
@@ -943,35 +983,67 @@
       }
 
       async function handleSignup() {
-        const u = email.value.trim().toLowerCase();
-        const p = password.value;
-        const error = document.getElementById("login-error");
+  const fn = firstName.value.trim();
+  const ln = lastName.value.trim();
+  const u = signupEmail.value.trim().toLowerCase();
+  const p = signupPassword.value;
 
-        if (!isValidEmail(u)) {
-          error.innerText = "Please enter a valid email address.";
-          return;
-        }
+  const error = document.getElementById("signup-error");
 
-        if (!isValidPassword(p)) {
-          error.innerText = "Password must be 8+ chars, with upper, lower & symbol.";
-          return;
-        }
+  if (!fn || !ln) {
+    error.innerText = "Please enter your first name and last name.";
+    return;
+  }
 
-        const { error: signUpError } = await supabaseClient.auth.signUp({
-          email: u,
-          password: p
-        });
+  if (!isValidEmail(u)) {
+    error.innerText = "Please enter a valid email address.";
+    return;
+  }
 
-        if (signUpError) {
-          error.style.color = "red";
-          error.innerText = signUpError.message || "Signup failed.";
-          return;
-        }
+  if (!isValidPassword(p)) {
+    error.innerText = "Password must be 8+ chars, with upper, lower & symbol.";
+    return;
+  }
 
-        track("account_created", { email: u });
-        error.style.color = "green";
-        error.innerText = "Account created. You can log in now.";
-      }
+  const { data, error: signUpError } = await supabaseClient.auth.signUp({
+    email: u,
+    password: p,
+    options: {
+      data: { first_name: fn, last_name: ln } // user metadata
+    }
+  });
+
+  if (signUpError) {
+    error.style.color = "red";
+    error.innerText = signUpError.message || "Signup failed.";
+    return;
+  }
+
+  track("account_created", { email: u });
+  error.style.color = "green";
+
+  // Si confirmation email OFF -> session dispo, on connecte direct
+  if (data?.user && data?.session) {
+    error.innerText = "Account created. You are now logged in!";
+    currentUser = data.user.email;
+    currentUserId = data.user.id;
+
+    document.getElementById("login-box").style.display = "none";
+    document.getElementById("app").style.display = "flex";
+    renderPanicPersonal();
+    updateGreeting();
+    renderJournalEntries();
+    renderSelfMessages();
+    startSession();
+  } else {
+    // Si confirmation email ON -> pas de session
+    error.innerText = "Account created. Please log in.";
+    showLoginForm();
+    email.value = u;
+    password.value = "";
+  }
+}
+
 
 
       async function handleLogin() {
