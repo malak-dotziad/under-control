@@ -1513,17 +1513,32 @@ function showLoginForm() {
           return;
         }
 
-        const { error: resetError } = await supabaseClient.auth.resetPasswordForEmail(u, {
-          redirectTo: `${location.origin}${location.pathname}`
-        });
+        const newPass = prompt("Enter a new password (8+ chars):");
+        if (!newPass) return;
 
-        if (resetError) {
-          error.innerText = resetError.message || "Reset failed.";
+        if (!isValidPassword(newPass)) {
+          error.innerText = "Password must be 8+ chars, with upper, lower & symbol.";
           return;
         }
 
-        info.innerText = "Check your email for a password reset link.";
-        error.innerText = "";
+        try {
+          const res = await fetch("/api/reset-password", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ email: u, newPassword: newPass })
+          });
+
+          const data = await res.json().catch(() => ({}));
+          if (!res.ok || data?.error) {
+            error.innerText = data?.error || "Reset failed.";
+            return;
+          }
+
+          error.innerText = "";
+          info.innerText = "Password updated. You can log in now.";
+        } catch (e) {
+          error.innerText = "Reset failed.";
+        }
       }
 
       async function restoreSession() {
