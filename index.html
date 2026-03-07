@@ -320,6 +320,13 @@
       z-index: 1;
     }
 
+    .hero-art img {
+      width: 100%;
+      height: auto;
+      display: block;
+      object-fit: contain;
+    }
+
     /* Tabs as Pills */
     .tabs {
       display: flex;
@@ -714,27 +721,7 @@
           <p>You are safe here. Take a moment to untangle your thoughts.</p>
         </div>
         <div class="hero-art">
-          <!-- Meditating Person SVG (Simplified) -->
-          <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
-            <!-- Background shapes -->
-            <circle cx="100" cy="120" r="70" fill="#fff5ee" />
-
-            <!-- Person Body -->
-            <path d="M60,160 Q60,120 100,120 Q140,120 140,160 Z" fill="#a2c2e0" /> <!-- Legs/Base -->
-            <path d="M75,120 Q75,80 100,80 Q125,80 125,120 Z" fill="#90b1d0" /> <!-- Torso -->
-
-            <!-- Head -->
-            <circle cx="100" cy="70" r="18" fill="#ffe4c4" />
-            <!-- Hair -->
-            <path d="M82,70 Q80,50 100,50 Q120,50 118,70" fill="#4a4a4a" />
-
-            <!-- Mug/Tea -->
-            <circle cx="120" cy="110" r="8" fill="#ffb7b2" />
-
-            <!-- Steam -->
-            <path d="M120,100 Q125,90 120,85" stroke="white" stroke-width="2" stroke-linecap="round" fill="none"
-              opacity="0.6" />
-          </svg>
+          <img src="./hero-front.png" alt="Under Control hero illustration" />
         </div>
       </div>
 
